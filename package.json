@@ -1,0 +1,13 @@
+{
+  "name": "walker",
+  "version": "1.0.0",
+  "description": "Find files recursively in directory",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kevin Muldoon",
+  "license": "ISC"
+}
