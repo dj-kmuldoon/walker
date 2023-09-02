@@ -1,23 +1,24 @@
-import { readdir } from 'node:fs/promises'
-import { join } from 'node:path'
+import { searchFiles, allFiles, searchFilesWithPrefixAndArray } from './utilities/index.js'
+import { WSJS_CONTEXTUAL_COLORS } from './constants/index.js'
 
-const allFiles = async (dirPath) => {
-    const files = await walk(dirPath)
-    const result = files.flat(Number.POSITIVE_INFINITY).map(element => {
-        return element.replace(" - ", "/")
-    })
-    return result
+const rootPath = "../DJ-Mobile-App-iOS/DJMobileApp"
+const searchString = "themeCoordinator.theme.colorScheme"
+
+async function Main() {
+
+  var files = await allFiles(rootPath)                          // All files in rootPath
+  files = files.filter(file => file.endsWith(".swift"))         // Exclude files without .swift file extension
+  files = files.filter(file => !file.includes("/djds.theme"))   // Exclude files with '/djds.theme' in path
+  files = files.filter(file => !file.includes("/Theme/"))       // Exclude files with '/Theme/' in path
+
+  // themeCoordinator.theme.colorScheme
+  const allFilesContainingThemeCoordinatorColorScheme = await searchFiles(files, searchString)
+  console.log(allFilesContainingThemeCoordinatorColorScheme)
+
+  // mapThemedColorsMappedToFiles
+  const allFilesContainingWSJSContextualColors = await searchFilesWithPrefixAndArray(files, searchString, WSJS_CONTEXTUAL_COLORS)
+  console.log("themedColorsMappedToFiles ->", allFilesContainingWSJSContextualColors)
+
 }
 
-const walk = async (dirPath) => Promise.all(
-  await readdir(dirPath, { withFileTypes: true }).then((entries) => entries.map((entry) => {
-    const childPath = join(dirPath, entry.name)
-    return entry.isDirectory() ? walk(childPath) : childPath
-  })),
-)
-
-const files = await allFiles('../find')
-
-files.map(file => {
-  console.log("->", file)
-})
+export default Main()
