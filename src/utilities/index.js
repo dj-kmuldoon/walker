@@ -1,31 +1,45 @@
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-const allFiles = async (dirPath) => {
-    const files = await walk(dirPath)
+export const allFiles = async (dirPath) => {
+    const files = await getFilesRecursive(dirPath)
     const result = files.flat(Number.POSITIVE_INFINITY).map(element => {
-        return element.replace(" - ", "/")
+        return element.replace(" - ", "/").replace(" ", "\ ")
     })
     return result
 }
 
-const searchFiles = async (filePaths, searchString) => {
+export const searchFiles = async (filePaths, searchString) => {
     const result = await readFiles(filePaths, searchString)
     return result.filter(x => x !== undefined)
 }
 
-const searchFilesWithPrefixAndArray = async (files, prefix, array) => Promise.all(
+export const searchFilesWithPrefixAndArray = async (files, prefix, array) => Promise.all(
     array.map(async element => {
         const searchString = `${prefix}.${element}`
         const result = await searchFiles(files, searchString)
-        return { color: element, files: result }
+        return { item: element, files: result }
     })
 )
 
-const walk = async (dirPath) => Promise.all(
+export const writeFileAsync = async (filePath, data) => {
+    writeFile(filePath, data, (err) => {
+        if (err) throw err;
+    })
+}
+
+// Return an array containing all the elements of 'left'  
+// that are not in 'right' and vice-versa
+export const difference = (left, right) => {
+    return left.
+        filter(element => !right.includes(element))
+        .concat(right.filter(element => !left.includes(element)));
+}
+
+const getFilesRecursive = async (dirPath) => Promise.all(
     await readdir(dirPath, { withFileTypes: true }).then((entries) => entries.map((entry) => {
         const childPath = join(dirPath, entry.name)
-        return entry.isDirectory() ? walk(childPath) : childPath
+        return entry.isDirectory() ? getFilesRecursive(childPath) : childPath
     })),
 )
 
@@ -38,5 +52,3 @@ const readFiles = async (filePaths, searchString) => Promise.all(
         })
     })
 )
-
-export { allFiles, searchFiles, searchFilesWithPrefixAndArray }
